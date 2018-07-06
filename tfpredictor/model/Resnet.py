@@ -2,6 +2,7 @@
 #-*- coding: utf-8 -*-
 
 from __future__ import print_function
+
 from keras.layers import (
     Input,
     Activation,
@@ -12,20 +13,20 @@ from keras.layers import (
 from keras.layers.convolutional import Conv2D
 from keras.layers.normalization import BatchNormalization
 from keras.models import Model
-from model import myLayer as myLayer
 
+# from tfpredictor.model import myLayer as myLayer
 
 
 def _shortcut(input, residual):
-    return add([input, residual], mode='sum')
+    return add([input, residual])
 
 
 def _bn_relu_conv(nb_filter, nb_row, nb_col, subsample=(1, 1)):
     def f(input):
 
-        input = BatchNormalization(mode=0, axis=1)(input)
+        input = BatchNormalization( axis=1)(input)
         activation = Activation('relu')(input)
-        return Conv2D(nb_filter=nb_filter, nb_row=nb_row, nb_col=nb_col, subsample=subsample, border_mode="same")(activation)
+        return Conv2D(filters=nb_filter, kernel_size=(nb_row, nb_col), strides=(1,1), padding="same")(activation)
     return f
 
 
@@ -41,7 +42,7 @@ def ResUnits(residual_unit, nb_filter, repetations=1):
     def f(input):
         for i in range(repetations):
             init_subsample = (1, 1)
-            input = residual_unit(nb_filter=nb_filter,init_subsample=init_subsample)(input)
+            input = residual_unit(nb_filter=nb_filter)(input)
         return input
     return f
 
@@ -69,11 +70,11 @@ def stresnet(c_conf=(3, 2, 32, 32), p_conf=(3, 2, 32, 32), t_conf=(3, 2, 32, 32)
     if len(outputs) == 1:
         main_output = outputs[0]
     else:
-
+        from tfpredictor.model.myLayer import myLayer
         new_outputs = []
         for output in outputs:
             new_outputs.append(myLayer()(output))
-        main_output = add(new_outputs, mode='sum')
+        main_output = add(new_outputs)
 
     # fusing with external component
     if external_dim != None and external_dim > 0:
@@ -85,12 +86,12 @@ def stresnet(c_conf=(3, 2, 32, 32), p_conf=(3, 2, 32, 32), t_conf=(3, 2, 32, 32)
         h1 = Dense(units=nb_flow * map_height * map_width)(embedding)
         activation = Activation('relu')(h1)
         external_output = Reshape((nb_flow, map_height, map_width))(activation)
-        main_output = add([main_output, external_output], mode='sum')
+        main_output = add([main_output, external_output])
     else:
         print('external_dim:', external_dim)
 
     main_output = Activation('tanh')(main_output)
-    model = Model(input=main_inputs, output=main_output)
+    model = Model(inputs=main_inputs, outputs=main_output)
 
     return model
 

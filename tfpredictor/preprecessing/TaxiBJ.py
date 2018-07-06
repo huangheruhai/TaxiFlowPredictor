@@ -13,15 +13,15 @@ import pickle
 from copy import copy
 import numpy as np
 import h5py
-from .loadh5file import load_stdata, stat
-from .minmax_normalization import MinMaxNormalization
+from tfpredictor.preprecessing.loadh5file import load_stdata, stat
+from tfpredictor.preprecessing.minmax_normalization import MinMaxNormalization
 from . import remove_incomplete_days, timestamp2vec
 
 from .STMatrix import STMatrix
 # np.random.seed(1337)  # for reproducibility
 
 # parameters
-DATAPATH = '/data/BJTaxi/'
+DATAPATH = 'E:\\AIproject\\taxiBJdata'
 
 
 def load_holiday(timeslots, fname=os.path.join(DATAPATH, 'TaxiBJ', 'BJ_Holiday.txt')):
@@ -112,10 +112,7 @@ def load_data(T=48, nb_flow=2, len_closeness=None, len_period=None, len_trend=No
     mmn.fit(data_train)
     data_all_mmn = [mmn.transform(d) for d in data_all]
 
-    fpkl = open(preprocess_name, 'wb')
-    for obj in [mmn]:
-        pickle.dump(obj, fpkl)
-    fpkl.close()
+
 
     XC, XP, XT = [], [], []
     Y = []

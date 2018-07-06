@@ -3,24 +3,23 @@
 ##train resnet model
 
 from __future__ import print_function
+
 import os
-import sys
 import pickle as pickle
 import time
+
 import numpy as np
-import h5py
-
-from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.optimizers import Adam
 
-from model.Resnet import stresnet
+from tfpredictor import metrics as metrics
+from tfpredictor.model.Resnet import stresnet
+from tfpredictor.preprecessing import TaxiBJ
 
-import utils.metrics as metrics
-from preprecessing import TaxiBJ
 np.random.seed(1337)  # for reproducibility
 
 # parameters
-DATAPATH = 'data/TaxiBJ'  # data path, you may set your own data path with the global envirmental variable DATAPATH
+DATAPATH = 'E:\\AIproject\\taxiBJdata'  # data path, you may set your own data path with the global envirmental variable DATAPATH
 CACHEDATA = False  # cache data or NOT
 path_cache = os.path.join(DATAPATH, 'CACHE')  # cache path
 nb_epoch = 500  # number of epoch at training stage
@@ -39,8 +38,8 @@ nb_flow = 2  # there are two types of flows: inflow and outflow
 days_test = 7 * 4
 len_test = T * days_test
 map_height, map_width = 32, 32  # grid size
-path_result = 'RET'
-path_model = 'MODEL'
+path_result = 'E:\\AIproject\\taxiBJdata\\RET'
+path_model = 'E:\\AIproject\\taxiBJdata\\MODEL'
 
 
 if os.path.isdir(path_result) is False:
@@ -132,15 +131,15 @@ def main():
     print("training model...")
     ts = time.time()
     history = model.fit(X_train, Y_train,
-                        nb_epoch=nb_epoch,
+                        epochs=nb_epoch,
                         batch_size=batch_size,
                         validation_split=0.1,
                         callbacks=[early_stopping, model_checkpoint],
                         verbose=1)
     model.save_weights(os.path.join(
         'MODEL', '{}.h5'.format(hyperparams_name)), overwrite=True)
-    pickle.dump((history.history), open(os.path.join(
-        path_result, '{}.history.pkl'.format(hyperparams_name)), 'wb'))
+    # pickle.dump((history.history), open(os.path.join(
+    #     path_result, '{}.history.pkl'.format(hyperparams_name)), 'wb'))
     print("\nelapsed time (training): %.3f seconds\n" % (time.time() - ts))
 
     print('=' * 10)
@@ -166,8 +165,8 @@ def main():
         fname_param, monitor='rmse', verbose=0, save_best_only=True, mode='min')
     history = model.fit(X_train, Y_train, nb_epoch=nb_epoch_cont, verbose=1, batch_size=batch_size, callbacks=[
                         model_checkpoint])
-    pickle.dump((history.history), open(os.path.join(
-        path_result, '{}.cont.history.pkl'.format(hyperparams_name)), 'wb'))
+    # pickle.dump((history.history), open(os.path.join(
+    #     path_result, '{}.cont.history.pkl'.format(hyperparams_name)), 'wb'))
     model.save_weights(os.path.join(
         'MODEL', '{}_cont.h5'.format(hyperparams_name)), overwrite=True)
     print("\nelapsed time (training cont): %.3f seconds\n" % (time.time() - ts))

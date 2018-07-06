@@ -1,11 +1,9 @@
 from __future__ import print_function
-import os
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
-
-
-from ..utils import string2timestamp
+from tfpredictor.utils import string2timestamp
 
 
 class STMatrix(object):
